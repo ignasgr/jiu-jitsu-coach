@@ -1,0 +1,7 @@
+# stand-alone files
+.env
+.python-version
+
+# directories
+data
+__pycache__
