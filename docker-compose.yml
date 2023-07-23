@@ -1,0 +1,19 @@
+services:
+
+  streamlit:
+    build: ./src/app
+    container_name: streamlit
+    ports:
+      - 8501:8501
+    volumes:
+      - ./src/app:/src/app
+
+  openai:
+    build: ./src/engine
+    container_name: openai
+    ports:
+      - 80:80
+    volumes:
+      - ./src/engine:/src/engine
+    env_file:
+      - .env
