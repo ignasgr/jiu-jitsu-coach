@@ -22,5 +22,11 @@ def llm_response(history: dict) -> dict:
     return response.choices[0].message
 
 @app.post("/embedding")
-def myfunc():
-    pass
+def create_embedding(text: dict) -> list:
+
+    response = openai.Embedding.create(
+        model="text-embedding-ada-002",
+        input=text["target"]
+    )
+
+    return response.data[0].embedding
