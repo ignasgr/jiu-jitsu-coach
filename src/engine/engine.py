@@ -1,38 +1,41 @@
 import os
-from typing import List
+from typing import List, Dict
 
 import openai
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 
-class Item(BaseModel):
-    text: str
-
 openai.api_key = os.environ["OPENAI_API_KEY"]
+
+class ChatHistory(BaseModel):
+    history: List[Dict]
+
+class TextInput(BaseModel):
+    text: str
 
 app = FastAPI()
 
 @app.get("/")
-def read_root():
-    return {"Hello": "World"}
+def root():
+    return {"Health Status": "OK"}
 
 @app.post("/chat")
-def llm_response(history: dict) -> dict:
+def llm_response(payload: ChatHistory) -> dict:
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=history["history"]
+        messages=payload.history
     )
 
     return response.choices[0].message
 
 @app.post("/embedding")
-def create_embedding(text: Item) -> list:
+def create_embedding(payload: TextInput) -> list:
 
     response = openai.Embedding.create(
         model="text-embedding-ada-002",
-        input=text.text
+        input=payload.text
     )
 
     return response.data[0].embedding
