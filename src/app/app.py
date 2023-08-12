@@ -4,15 +4,6 @@ import streamlit as st
 
 ENDPOINT = "http://openai/chat"
 
-def get_llm_response(user_prompt):
-
-    st.session_state.messages.append({"role": "user", "content": user_prompt})
-
-    payload = {"history": st.session_state.messages}
-    response = requests.post(ENDPOINT, json=payload).json()
-
-    return response
-
 def main():
 
     if "messages" not in st.session_state:
@@ -21,15 +12,27 @@ def main():
     for message in st.session_state["messages"]:
         st.chat_message(message["role"]).markdown(message["content"])
 
-    if prompt := st.chat_input("Start typing here..."):
+    if user_prompt := st.chat_input("Start typing here..."):
 
-        st.chat_message("user").markdown(prompt)
+        st.session_state.messages.append({"role": "user", "content": user_prompt})
+        st.chat_message("user").markdown(user_prompt)
 
         with st.chat_message("assistant"):
-            response = get_llm_response(prompt)
-            st.markdown(response["content"])
+            message_placeholder = st.empty()
+            full_response = ""
 
-        st.session_state.messages.append(response)
+            for chunk in requests.post(
+                url=ENDPOINT,
+                json={"history": st.session_state.messages},
+                stream=True
+            ):
+                chunk_msg = chunk.decode("utf-8")
+                full_response += chunk_msg
+                message_placeholder.markdown(full_response + "▌")
+
+            message_placeholder.markdown(full_response)
+
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 if __name__ == "__main__":
     main()
